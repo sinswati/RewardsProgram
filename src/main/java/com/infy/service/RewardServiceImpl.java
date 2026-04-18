@@ -15,7 +15,6 @@ import com.infy.dto.CustomerRewardDto;
 import com.infy.entity.Transaction;
 import com.infy.repository.TransactionRepo;
 
-
 @Service
 public class RewardServiceImpl implements RewardService {
 
@@ -27,11 +26,13 @@ public class RewardServiceImpl implements RewardService {
 	}
 
 	public BigDecimal calculatePoints(BigDecimal amount) {
-		
+
 		logger.debug("Calculating points for amount: {}", amount);
-
+		if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0) {
+			logger.error("Invalid transaction amount: {}", amount);
+			throw new IllegalArgumentException("Amount must be non-null and positive");
+		}
 		BigDecimal points = BigDecimal.ZERO;
-
 		if (amount.compareTo(BigDecimal.valueOf(100)) > 0) {
 			points = points.add(amount.subtract(BigDecimal.valueOf(100)).multiply(BigDecimal.valueOf(2)));
 			points = points.add(BigDecimal.valueOf(50));
@@ -43,6 +44,12 @@ public class RewardServiceImpl implements RewardService {
 	}
 
 	public List<CustomerRewardDto> calculateRewards(LocalDate startDate, LocalDate endDate) {
+
+		if (startDate == null || endDate == null) {
+			logger.error("Invalid date range: startDate={}, endDate={}", startDate, endDate);
+			throw new IllegalArgumentException("Start and end dates must be provided");
+		}
+
 		List<Transaction> transactions = repository.findByDateBetween(startDate, endDate);
 
 		Map<String, List<Transaction>> groupedByCustomer = transactions.stream()

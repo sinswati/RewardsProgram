@@ -1,6 +1,7 @@
 package com.infy.controller;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.infy.dto.CustomerRewardDto;
-import com.infy.exception.InvalidDateRangeException;
 import com.infy.service.RewardService;
 
 @RestController
@@ -40,7 +40,9 @@ public class RewardsController {
 			endDate = LocalDate.now();
 			startDate = endDate.minusMonths(months);
 		} else if (startDate == null || endDate == null) {
-			throw new InvalidDateRangeException("Both startDate and endDate must be provided");
+			 logger.error("Invalid date range: startDate={}, endDate={}", startDate, endDate);
+			return ResponseEntity.badRequest()
+                    .body(Collections.emptyList());
 		}
 
 		List<CustomerRewardDto> rewards = rewardsService.calculateRewards(startDate, endDate);

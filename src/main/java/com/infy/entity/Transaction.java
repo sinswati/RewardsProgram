@@ -8,27 +8,27 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 @Entity
-@Table(name="Transactions")
+@Table(name = "Transactions")
 public class Transaction {
 
 	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @NotNull
-    private String customerId;
+	@NotBlank(message = "Customer ID must not be blank")
+	private String customerId;
 
-    @NotNull
-    @Positive
-    private BigDecimal amount;
+	@NotNull(message = "Amount must not be null")
+	@Positive
+	private BigDecimal amount;
 
-    @NotNull
-    private LocalDate date;
-
+	@NotNull(message = "Transaction date must not be null")
+	private LocalDate date;
 
 	public Transaction() {
 		super();
@@ -52,7 +52,7 @@ public class Transaction {
 
 	public Transaction(Long id, @NotNull String customerId, @NotNull @Positive BigDecimal amount,
 			@NotNull LocalDate date) {
-	
+
 		this.id = id;
 		this.customerId = customerId;
 		this.amount = amount;
@@ -66,6 +66,5 @@ public class Transaction {
 	public void setDate(LocalDate date) {
 		this.date = date;
 	}
-
 
 }
