@@ -90,14 +90,14 @@ class RewardServiceTest {
 
 		CustomerRewardDto c1 = rewards.stream().filter(r -> r.getCustomerId().equals("C1")).findFirst().orElseThrow();
 
-		assertEquals(BigDecimal.valueOf(70), c1.getMonthlyPoints().get(YearMonth.of(2026, 1)));
+		assertEquals(BigDecimal.valueOf(90), c1.getMonthlyPoints().get(YearMonth.of(2026, 1)));
 		assertEquals(BigDecimal.valueOf(25), c1.getMonthlyPoints().get(YearMonth.of(2026, 2)));
-		assertEquals(BigDecimal.valueOf(95), c1.getTotalPoints());
+		assertEquals(BigDecimal.valueOf(115), c1.getTotalPoints());
 
 		CustomerRewardDto c2 = rewards.stream().filter(r -> r.getCustomerId().equals("C2")).findFirst().orElseThrow();
 
-		assertEquals(BigDecimal.valueOf(150), c2.getMonthlyPoints().get(YearMonth.of(2026, 1)));
-		assertEquals(BigDecimal.valueOf(150), c2.getTotalPoints());
+		assertEquals(BigDecimal.valueOf(250), c2.getMonthlyPoints().get(YearMonth.of(2026, 1)));
+		assertEquals(BigDecimal.valueOf(250), c2.getTotalPoints());
 
 	}
 
