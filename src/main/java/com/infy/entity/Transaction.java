@@ -30,10 +30,6 @@ public class Transaction {
 	@NotNull(message = "Transaction date must not be null")
 	private LocalDate date;
 
-	public Transaction() {
-		super();
-	}
-
 	public String getCustomerId() {
 		return customerId;
 	}
@@ -58,6 +54,13 @@ public class Transaction {
 		this.amount = amount;
 		this.date = date;
 	}
+
+	
+	public Transaction() {
+		
+	}
+
+
 
 	public LocalDate getDate() {
 		return date;

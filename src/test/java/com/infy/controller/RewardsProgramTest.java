@@ -1,47 +1,74 @@
 package com.infy.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.web.servlet.MockMvc;
 import com.infy.dto.CustomerRewardDto;
 import com.infy.service.RewardService;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(RewardsController.class)
-class RewardsControllerTest {
+class RewardControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
 
-	@InjectMocks
-	private RewardService rewardsService;
+	@MockBean
+	private RewardService rewardService;
 
 	@Test
-	void testDefaultThreeMonths() throws Exception {
+	void testGetRewardsWithValidDateRange() throws Exception {
 		CustomerRewardDto dto = new CustomerRewardDto();
-		dto.setCustomerId("C001");
-		dto.setMonthlyPoints(Map.of(YearMonth.of(2026, 1), new BigDecimal("90")));
-		dto.setTotalPoints(new BigDecimal("90"));
+		dto.setCustomerId("C1");
+		dto.setMonthlyPoints(Map.of(YearMonth.of(2026, 1), BigDecimal.valueOf(90)));
+		dto.setTotalPoints(BigDecimal.valueOf(90));
 
-		when(rewardsService.calculateRewards(any(), any())).thenReturn(List.of(dto));
+		when(rewardService.calculateRewards(eq(LocalDate.of(2026, 1, 1)), eq(LocalDate.of(2026, 3, 31))))
+				.thenReturn(List.of(dto));
 
-		mockMvc.perform(get("/api/rewards")).andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].customerId").value("C001")).andExpect(jsonPath("$[0].totalPoints").value(90));
+		mockMvc.perform(get("/api/rewards/calculate").param("startDate", "2026-01-01").param("endDate", "2026-03-31")
+				.accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].customerId").value("C1")).andExpect(jsonPath("$[0].totalPoints").value(90));
 	}
 
 	@Test
-	void testMissingStartDate() throws Exception {
-		mockMvc.perform(get("/api/rewards").param("endDate", "2026-03-31")).andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.error").value("Both startDate and endDate must be provided"));
+	void testGetRewardsWithDefaultMonthsWhenDatesMissing() throws Exception {
+		CustomerRewardDto dto = new CustomerRewardDto();
+		dto.setCustomerId("C2");
+		dto.setMonthlyPoints(Map.of(YearMonth.now(), BigDecimal.valueOf(50)));
+		dto.setTotalPoints(BigDecimal.valueOf(50));
+
+		when(rewardService.calculateRewards(any(LocalDate.class), any(LocalDate.class))).thenReturn(List.of(dto));
+
+		mockMvc.perform(get("/api/rewards/calculate").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].customerId").value("C2")).andExpect(jsonPath("$[0].totalPoints").value(50));
 	}
+
+	@Test
+	void testGetRewardsWithInvalidDateRange() throws Exception {
+		mockMvc.perform(
+				get("/api/rewards/calculate").param("startDate", "2026-01-01").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isBadRequest()).andExpect(content().string("[]"));
+	}
+
+	@Test
+	void testGetRewardsNoResultsFound() throws Exception {
+		when(rewardService.calculateRewards(any(LocalDate.class), any(LocalDate.class)))
+				.thenReturn(Collections.emptyList());
+
+		mockMvc.perform(get("/api/rewards/calculate").param("startDate", "2026-01-01").param("endDate", "2026-03-31")
+				.accept(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound());
+	}
+
 }

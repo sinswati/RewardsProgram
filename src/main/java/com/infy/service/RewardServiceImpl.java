@@ -4,10 +4,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -51,6 +53,10 @@ public class RewardServiceImpl implements RewardService {
 		}
 
 		List<Transaction> transactions = repository.findByDateBetween(startDate, endDate);
+
+		if (transactions == null) {
+			return Collections.emptyList();
+		}
 
 		Map<String, List<Transaction>> groupedByCustomer = transactions.stream()
 				.collect(Collectors.groupingBy(Transaction::getCustomerId));
